@@ -8,14 +8,12 @@ const startMessage = document.querySelector('.message-start');
 const winMessage = document.querySelector('.message-win');
 const loseMessage = document.querySelector('.message-lose');
 
-let isFirstMoveMade = false;
+function updateButton() {
+  const isIdle = game.getStatus() === 'idle';
 
-function resetButtonToStart() {
-  isFirstMoveMade = false;
-
-  button.classList.remove('restart');
-  button.classList.add('start');
-  button.textContent = 'Start';
+  button.classList.toggle('start', isIdle);
+  button.classList.toggle('restart', !isIdle);
+  button.textContent = isIdle ? 'Start' : 'Restart';
 }
 
 function render() {
@@ -26,14 +24,12 @@ function render() {
   state.forEach((row, rowIndex) => {
     row.forEach((value, colIndex) => {
       const cellIndex = rowIndex * 4 + colIndex;
-
       const cell = cells[cellIndex];
 
       cell.className = 'field-cell';
 
       if (value > 0) {
         cell.textContent = value;
-
         cell.classList.add(`field-cell--${value}`);
       } else {
         cell.textContent = '';
@@ -44,17 +40,15 @@ function render() {
   startMessage.classList.toggle('hidden', game.getStatus() !== 'idle');
   winMessage.classList.toggle('hidden', game.getStatus() !== 'win');
   loseMessage.classList.toggle('hidden', game.getStatus() !== 'lose');
+
+  updateButton();
 }
 
 button.addEventListener('click', () => {
-  if (button.classList.contains('start')) {
+  if (game.getStatus() === 'idle') {
     game.start();
-
-    isFirstMoveMade = false;
   } else {
     game.restart();
-
-    resetButtonToStart();
   }
 
   render();
@@ -64,8 +58,6 @@ document.addEventListener('keydown', (e) => {
   if (game.getStatus() !== 'playing') {
     return;
   }
-
-  const prevState = JSON.stringify(game.getState());
 
   switch (e.key) {
     case 'ArrowLeft':
@@ -90,16 +82,6 @@ document.addEventListener('keydown', (e) => {
 
     default:
       return;
-  }
-
-  const currentState = JSON.stringify(game.getState());
-
-  if (!isFirstMoveMade && prevState !== currentState) {
-    isFirstMoveMade = true;
-
-    button.classList.remove('start');
-    button.classList.add('restart');
-    button.textContent = 'Restart';
   }
 
   render();
